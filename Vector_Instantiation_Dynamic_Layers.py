@@ -488,38 +488,12 @@ with tf.Session() as sess:
             cpl_coeff_lst = [cpl.eval({X: X_batch, y: y_batch}) for cpl in cpl_lst]
             out_vect_lst = [out.eval({X: X_batch, y: y_batch}) for out in out_vect]
             pred = prediction.eval({X: X_batch, y: y_batch})
-            # weights_tiled = W_tiled.eval({X: X_batch, y: y_batch})
-            # weighted_sum_lst_lst = [ws.eval({X: X_batch, y: y_batch}) for ws in weighted_sum_lst]
-            # LRATE *= 10
-            # neural_network_cost_list = np.append(
-            #     neural_network_cost_list, loss_train)
-            # # l_rate = learning_rate.eval({X: X_batch, y: y_batch})
-            # iteration_list = np.append(iteration_list, LRATE)
 
             if(epoch == (n_epochs-1)):
-                # if iteration % 20 == 0:
-                #     summary_str = sess.run(summary, feed_dict={X: X_batch, y: y_batch})
-                #     summary_writer.add_summary(summary_str, iteration)
-                #     summary_writer.flush()
-                np.savetxt("Parameters/coupling_coefficients.csv", cpl_coeff_lst[4][0], delimiter=",")
-                # np.savetxt("Parameters/out_vector.csv", out_vect_lst[4][0], delimiter=",")
-                np.savetxt("Parameters/prediction.csv", pred, delimiter=",")
                 rule_set.append(extract_rules_boundary(dt.eval({X: X_batch, y: y_batch}), cpl_coeff_lst, pred_vect_lst,
                                                        out_vect_lst, pred))
 
             btch_indx += batch_size
-
-
-        # print("mean:",np.mean(np.max(pred, axis = 1)),"std:",np.std(np.max(pred, axis = 1)))
-        # plt.figure()
-        # plt.plot(iteration_list, neural_network_cost_list, 'b--', label='SAE')
-        # plt.legend(loc='upper left')
-        # plt.xlabel("learning rate")
-        # plt.ylabel("Average Training Cost")
-        # plt.ylim(0, 600)
-        # plt.xlim(0, 75)
-        # # plt.show()
-        # plt.savefig('Fig_avg_cost.eps', format='eps')
 
         # At the end of each epoch,
         # measure the validation loss and accuracy:
@@ -699,52 +673,4 @@ with tf.Session() as sess:
      #########################################################################
      # Rule Evaluation
     evaluate_rules_boundary(rules, test_data, test_labels)
-
-'''
-Prediction
-'''
-# n_samples = batch_size
-# arr_test = np.array(df_test)
-# np.random.shuffle(arr_test)
-# arr_test = arr_test[:n_samples,:]
-# np.savetxt("Parameters/input_samples_interpretations.csv", arr_test, delimiter=",")
-#
-# pred_data = np.array(arr_test[:, 0:col_num - 1])
-# pred_labels = np.zeros((len(pred_data), N_CLASSSES), dtype=int)
-# pred_labels = np.array(arr_test[:, col_num - 1], dtype=int)
-# # 1-d array to one-hot conversion
-# onehot_labels = np.zeros((len(pred_labels), N_CLASSSES))
-# onehot_labels[np.arange(pred_labels.size), pred_labels] = 1
-# pred_labels = onehot_labels
-
-# ***************Tweak Parameters********************
-# **************************************
-# with tf.Session() as sess:
-#     saver.restore(sess, checkpoint_path)
-#     caps_output_value, decoder_output_value, y_pred_value = sess.run(
-#             [caps_out, decoder_out, prediction],
-#             feed_dict={X: pred_data,
-#                        y: pred_labels})
-#
-# n_steps = 11
-# tweaked_vectors = tweak_pose_parameters(caps_output_value, n_steps=n_steps)
-
-# Now let's feed these tweaked output vectors to the decoder and get the reconstructions it produces:
-# with tf.Session() as sess:
-#     saver.restore(sess, checkpoint_path)
-#     lst_output = list()
-#     for i in range(n_hidden1):
-#         lst_output = list()
-#         for j in range(n_steps):
-#                 decoder_output_value = sess.run(
-#                         decoder_out,
-#                         feed_dict={caps_out: tweaked_vectors[i][j],
-#                                    mask_with_labels: True,
-#                                    y: pred_labels})
-#                 decoder_output_value_stack = np.hstack((decoder_output_value, pred_labels))
-#                 decoder_output_value_flat = np.reshape(decoder_output_value_stack, (-1,))
-#                 lst_output.append(decoder_output_value_flat)
-#         np.savetxt("Parameters/tweaked_dim_"+str(i+1)+".csv", lst_output, delimiter=",")
-
-print('mission accomplished')
 
