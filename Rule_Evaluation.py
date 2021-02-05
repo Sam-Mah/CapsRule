@@ -13,20 +13,13 @@ def evaluate_rules_boundary(rules, x_test, y_test_one):
     # print(rules)
     y_test = [np.where(r == 1)[0][0] for r in y_test_one]
     y_pred = np.zeros(len(y_test), dtype=int)
-    # rules = list(chain.from_iterable(rules))
     uncovered_sample = 0
     t = 0
     for x in x_test:
         flg = False
-        # sum_one = 0
-        # sum_zero = 0
         sum = np.zeros(N_CLASSSES)
-        # flg_rule = False
         for rl in rules:
-            # Write each rule into a string then execute it
-            # f = open('rule_code.py', 'w')
             str_rule = 'if ('
-            # cnt_non_match = 0
             rl_lbl = rl[-1]
             rl = rl[:-1]
             i = 3
@@ -37,23 +30,17 @@ def evaluate_rules_boundary(rules, x_test, y_test_one):
                 except Exception as E:
                     print(E)
             try:
-                # Generate rule string to be written to a file
+                # Generate rule string
                 str_rule += ' '.join(rl) + '):\n\t' + 'print(True)\nelse:\n\tprint(False)'
-                # f.write(str_rule)
-                # f.close()
-                '''Save stdout into a file'''
                 # Store the reference, in case you want to show things again in standard output
                 old_stdout = sys.stdout
                 # This variable will store everything that is sent to the standard output
                 result = StringIO()
                 sys.stdout = result
                 # Here we execute the rule instructions, and everything that they will send to standard output will be stored on "result"
-                # exec(open("rule_code.py").read())
-                # Redirect again the std output to screen
                 exec(str_rule)
                 sys.stdout = old_stdout
                 # Then, get the stdout like a string and process it!
-
                 flg_rule = result.getvalue()
                 flg_rule = flg_rule.replace('\n', '')
 
@@ -64,12 +51,6 @@ def evaluate_rules_boundary(rules, x_test, y_test_one):
                 flg = True
                 # 1 0 sample
                 sum[int(rl_lbl)] += 1
-                # if (rl_lbl == 0):
-                #     sum_zero += 1
-                # # 0 1 sample
-                # else:
-                #     sum_one += 1
-
         # if the current sample is not covered by any of the rules
         if (flg == False):
             uncovered_sample += 1
@@ -77,13 +58,8 @@ def evaluate_rules_boundary(rules, x_test, y_test_one):
         # if the current sample is covered by at least one of the rules
         else:
             rule_vote = np.argmax(sum)
-
-        ## In the rules, output 0 means (1 0) Malicious
-        # In the rules, output 1 means (0 1) Benign
         y_pred[t] = rule_vote
         t += 1
-        # if (t==10):
-        #     break
     mcm, tp_mean, tn_mean, fp_mean, fn_mean = confusion_metrics_basic(y_test, y_pred)
     out_measures = Micro_calculate_measures(tp_mean, tn_mean, fp_mean, fn_mean, uncovered_sample)
     pr, rc, f1 = Macro_calculate_measures_basic(y_test, y_pred)
