@@ -18,11 +18,8 @@ def find_min_max_coef(i, j, cls, couple_slice,pred_vect,out_vect):
 
     #Sort the coupling coefficients descending
     t = np.argsort(couple_slice)[:][::-1]
-    # print(t.size)
-    # thresh = cls_val
     k = 0
     gamma = 0.9
-    # gamma = 0.7
     #A threshold of max capsule output in layer $l$ scaled by gamma$
     thresh = gamma*np.linalg.norm(out_vect[j][i,cls])
     s = 0
@@ -31,16 +28,7 @@ def find_min_max_coef(i, j, cls, couple_slice,pred_vect,out_vect):
         # print("\n couple by prediction",couple_slice[t[k]]*pred_vect[j][i, t[k], cls] )
         s += couple_slice[t[k]]*pred_vect[j][i, t[k], cls] #multiply coefficients by the prediction vector
         ss = np.linalg.norm(squash_arr(s))#squash the vector and compute the norm of the output
-        # print("\n length of s:",ss )
-        # if (couple_slice[t[k]]<0.01):
-        #     k += 1
-        #     break
         k += 1
-    # print(type(t))
-    if(j==layers-1):
-        mean.append(np.mean(couple_slice[t[0:k]]))
-        std.append(np.std(couple_slice[t[0:k]]))
-        # print("mean coupling coefficient:" + np.mean(couple_slice[t[0:k]])+ "std coupling coefficient:"+ np.std(couple_slice[t[0:k]]))
     return t[0:k]
 
 def recursive_coupl_coeff(i,j,cls,couple_slice, coupl_coeff,pred_vect,out_vect):
@@ -55,39 +43,12 @@ def recursive_coupl_coeff(i,j,cls,couple_slice, coupl_coeff,pred_vect,out_vect):
         # Select the maximum coefficients in a reverse order ([::-1] means reverse order)
         return find_min_max_coef(i, j, cls,couple_slice,pred_vect, out_vect)
     else:
-        # max_nodes = np.argsort(arr)[-rl_cutoff:][::-1]
         #Select the minimum number of capsules with highest c that result in maximum output val
         max_nodes = find_min_max_coef(i, j, cls,couple_slice,pred_vect,out_vect)
         for xx in max_nodes:
             couple_slice = coupl_coeff[j - 1][i, :, xx]
             lst_out.append(recursive_coupl_coeff(i, j - 1, xx, couple_slice, coupl_coeff, pred_vect, out_vect))
-
     return lst_out
-
-def extract_rules_nonboundary(input, coupl_coeff, pred):
-    s = np.argmax(pred, axis = 1)
-    couple_slice = coupl_coeff[len(coupl_coeff) - 1]
-
-    rule = list()
-    for i in range(len(s)):
-        #Select a sample in the batch with class s[i]
-        arr_slice = couple_slice[i, :, s[i]]
-        j = len(coupl_coeff)-1
-        l = recursive_coupl_coeff(i, j, arr_slice, coupl_coeff)
-
-        rule_lst = list()
-        for x in l:
-            for t in x:
-                # input nodes of the rule
-                rule_lst.append(t)
-                rule_lst.append(input[i][t])
-            rule_lst.append('OR')
-        del rule_lst[-1]
-        rule_lst.append(s[i])
-        rule.append(rule_lst)
-
-    return rule
-
 output=list()
 def reemovNestings(l):
     for i in l:
@@ -106,8 +67,6 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
     s = np.argmax(pred, axis = 1)
     #Slice the coupling coefficients between two last layers
     couple_slice = coupl_coeff[len(coupl_coeff) - 1]
-    # pred_slice = pred_vect[len(pred_vect) - 1]
-
     #array of rule structure (list by dict), number of lists equal the number of classes
     rule_arr_class = np.empty((N_CLASSSES,), dtype=object)
     # The first set of rules is related to class '0' and the second set of rules is related to class '1'
@@ -118,7 +77,6 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
         rule_arr = list()
         #Select the coefficients of sample i and maximum class s[i]
         arr_slice = couple_slice[i, :, s[i]]
-        # pred_slice2 = pred_slice[i,:,s[i]]
         j = len(coupl_coeff)-1
         #Recursively find the maximum coefficients in each layer until we reach the input layer
         l = recursive_coupl_coeff(i, j, s[i], arr_slice, coupl_coeff, pred_vect, out_vect)
@@ -133,7 +91,6 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
             flatten_l.append(mylist)
             output = list()
         for x in flatten_l:
-            # print(type(x))
             dict = {}
             # A loop to check whether the new conditions x exist in the previous selected conditions with the same class
             # in the batch
@@ -150,7 +107,7 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
                         ind = rule_arr_class[s[i]].index(itm)
                         flg_dict = True
                         if (len(x)>len(lst_temp)):
-                            # diff_list = list(set(x)-set(lst_temp))
+                            diff_list = list(set(x)-set(lst_temp))
                             x = lst_temp
                         else:
                             diff_list = list(set(lst_temp)-set(x))
@@ -165,7 +122,6 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
                 #if not, create a new dictionary with the keys
                 else:
                     dict.setdefault(t,[]).append(input_dt[i][t])
-                    # dict[t]=input_dt[i][t]
             #If the new keys are a sublist of any itm in the list and itm has redundant keys, remove all based on
             # absorbtion law
             if((flg_dict == True) and (len(diff_list)>0)):
