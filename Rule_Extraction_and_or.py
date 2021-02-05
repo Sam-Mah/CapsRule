@@ -107,7 +107,6 @@ def extract_rules_boundary(input_dt, coupl_coeff, pred_vect, out_vect,pred):
                         ind = rule_arr_class[s[i]].index(itm)
                         flg_dict = True
                         if (len(x)>len(lst_temp)):
-                            diff_list = list(set(x)-set(lst_temp))
                             x = lst_temp
                         else:
                             diff_list = list(set(lst_temp)-set(x))
