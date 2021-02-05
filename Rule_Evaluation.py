@@ -10,7 +10,6 @@ N_CLASSSES = 4
 # &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 def evaluate_rules_boundary(rules, x_test, y_test_one):
     # Flatten the rule_set list into a 1D list
-    # print(rules)
     y_test = [np.where(r == 1)[0][0] for r in y_test_one]
     y_pred = np.zeros(len(y_test), dtype=int)
     uncovered_sample = 0
