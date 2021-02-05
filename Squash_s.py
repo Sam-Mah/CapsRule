@@ -17,12 +17,8 @@ def safe_norm(s, axis=-1, epsilon=1e-7, keep_dims=False, name=None):
         return tf.sqrt(squared_norm + epsilon)
 
 def squash_arr(s, axis=-1, epsilon=1e-7):
-
-    # if (len(s)==0):
-    #     return 0
     squared_norm = np.sum(np.square(s), axis=axis)
     safe_norm = np.sqrt(squared_norm + epsilon)
-    # safe_norm = np.sqrt(squared_norm)
     squash_factor = squared_norm / (1. + squared_norm)
     unit_vector = s / safe_norm
     return squash_factor * unit_vector
